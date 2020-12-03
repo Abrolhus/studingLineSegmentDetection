@@ -1,0 +1,3 @@
+/home/abrolhus/Rinobot/Projects/lsdOpenCV/teste/build/CMakeFiles/rebuild_cache.dir
+/home/abrolhus/Rinobot/Projects/lsdOpenCV/teste/build/CMakeFiles/main.dir
+/home/abrolhus/Rinobot/Projects/lsdOpenCV/teste/build/CMakeFiles/edit_cache.dir
