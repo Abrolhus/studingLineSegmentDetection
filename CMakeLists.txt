@@ -24,8 +24,6 @@ add_executable(main
     dis_ang_translation.cpp
     lsd.h
     lsd.cpp
-    displayMultipleImages.h
-    displayMultipleImages.cpp
     main.cpp)
 
 target_link_libraries(main ${OpenCV_LIBS})

@@ -9,7 +9,6 @@
 #include "line_feature_detection.h"
 #include "feature_extraction.h"
 #include "dis_ang_translation.h"
-#include "displayMultipleImages.h"
 
 
 // extern "C" { // n tava compilando, ai stackOverflow me deu isso aqui pra diferenciar quando o .h e para C, nao para c++
@@ -18,27 +17,12 @@
 int main(int argc, char **argv)
 {
     cv::Mat img, grayImg;
-    std::vector<cv::Mat> imagens;
-    std::vector<cv::Mat> binarizadas;
-    cv::Mat canvas;
-    for(int i = 1; i < argc; i++){
-        imagens.push_back(cv::imread(argv[i]));
-    }
-    for(int i = 1; i < argc; i++){
-        cv::Mat auxImg;
-        cv::cvtColor(imagens[i], auxImg, cv::COLOR_RGBA2GRAY);
-        binarizadas.push_back(auxImg.clone());
-    }
     int n;
+	img = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
+    cv::Mat binarizada(img.rows, img.cols, CV_8UC3, cv::Scalar(0,0,0));
+    cv::cvtColor(img, grayImg, cv::COLOR_RGBA2GRAY);
     double* grayValues = new double[grayImg.rows*grayImg.cols];
     double* lineSegs;
-/*
-  for(x=0;x<X;x++)
-    for(y=0;y<Y;y++)
-      image[x+y*X] = x<X/2 ? 0.0 : 64.0; // image(x,y)
-    */
-
-
     for(int y = 0; y < grayImg.rows; y++){
         for(int x = 0; x < grayImg.cols; x++){
             //armazena os valores de cor de cada pixel num array UNIDIMENSIONAL de doubles;
@@ -49,12 +33,11 @@ int main(int argc, char **argv)
             grayValues[y*grayImg.cols + x] = atxy;
         }
     }
-    std::cout << "dimens da imagem: " << grayImg.rows << " " << grayImg.cols;
-    //lineSegs = lsd(&n, grayValues, grayImg.cols, grayImg.rows);
+    // std::cout << "dimens da imagem: " << grayImg.rows << " " << grayImg.cols;
+    // lineSegs = lsd(&n, grayValues, grayImg.cols, grayImg.rows);
 
     lineSegs = lsd(&n, grayValues, grayImg.cols, grayImg.rows);
-    /* print output */
-    // printf("%d line segments found:\n",n);
+    std::vector<cv::Vec4i> lines;
     for(int i=0;i<n;i++)
     {
         for(int j=0;j<7;j++);
@@ -81,7 +64,6 @@ int main(int argc, char **argv)
     cv::putText(img, ".....", Point(img.cols*2/3, img.rows*2/3 + 80),cv::FONT_HERSHEY_DUPLEX, 1.0,  featureToColor.at(4));
 
 //
-    std::vector<cv::Vec4i> lines;
     cout << "line_extraction ";
 	line_extraction(binarizada, lines, 5, 5);
     // cout << lines.size() << " fkjadslk;fjlasjdf ";
@@ -97,9 +79,6 @@ int main(int argc, char **argv)
         cout << "uai";
         circle(binarizada, Point(e.position.x, e.position.y), 3, featureToColor.at(e.type), 3, 8, 0);
     }
-
-    canvas = makeCanvas(imagens, 720, 3);
-    cv::imshow("imagens!!!!!!", canvas);
 
     cv::imshow("vai tio", img);
     cv::imshow("tb vai tio", binarizada);
