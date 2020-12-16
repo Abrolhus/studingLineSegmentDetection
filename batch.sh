@@ -2,7 +2,7 @@
 outputDir=out/
 buildDir=build
 
-make --directory $buildDir
+make
 mkdir $outputDir
 for var in "$@"
 do
@@ -10,7 +10,7 @@ do
     echo "justName: $justName"
     echo "path: $var"
     echo $outputFolder$justName
-    ./$buildDir/main $var $outputDir$justName
+    ./main $var $outputDir$justName
     echo "Image saved to $outputDir$justName"
 done
 

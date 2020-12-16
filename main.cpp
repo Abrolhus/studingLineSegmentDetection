@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     for(size_t i = 0; i < endPoints.size(); i++){
         if(field.at<uchar>(beginPoints.at(i)) == 0 && field.at<uchar>(beginPoints.at(i)) == 0)
             continue;
-        cv::line(drawImg, beginPoints.at(i), endPoints.at(i), cv::Scalar(240, 0, 0), 3);
+        cv::line(drawImg, beginPoints.at(i), endPoints.at(i), cv::Scalar(240, 0, 0), 2);
         cv::circle(drawImg, endPoints.at(i), 3, cv::Scalar(0, 255, 0), 2);
         cv::circle(drawImg, beginPoints.at(i), 3, cv::Scalar(0, 0, 255), 2);
     }
