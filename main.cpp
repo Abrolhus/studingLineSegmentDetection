@@ -3,18 +3,21 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "img_processing.h"
+#include "displayMultipleImages.h"
 // extern "C" { // n tava compilando, ai stackOverflow me deu isso aqui pra diferenciar quando o .h e para C, nao para c++
 #include "lsd.h"
 // }
 int main(int argc, char **argv) {
     double* grayMatToArray(cv::Mat img);
     cv::Mat img, hsvImg, grayImg, drawImg;
+    cv::Mat canvas;
     // cv::Mat hueImg, saturationImg, lighImg;
     cv::Mat field; //field (remove_background)
     int n; // (LSD: number of line segments found)
     std::vector<cv::Point> endPoints; // end of each line segmnet (LSD)
     std::vector<cv::Point> beginPoints;
     std::string imgPath;
+
 
     if(argc >= 3) // ./main input.png outputImg.png
         imgPath = argv[2];
@@ -56,9 +59,11 @@ int main(int argc, char **argv) {
             }
         }
     }
+    std::vector<cv::Mat> aux {img, drawImg};
+    canvas = makeCanvas(aux, img.rows, 1);
 
     // cv::imshow("Agora vai, com elegancia e sofisticacao", drawImg);
-    cv::imwrite(imgPath, drawImg);
+    cv::imwrite(imgPath, canvas);
     // cv::waitKey();
 }
 double* grayMatToArray(cv::Mat img){

@@ -8,6 +8,8 @@ add_executable(main
     img_processing.cpp
     lsd.h
     lsd.cpp
+    displayMultipleImages.h
+    displayMultipleImages.cpp
     main.cpp)
 
 target_link_libraries(main ${OpenCV_LIBS})
