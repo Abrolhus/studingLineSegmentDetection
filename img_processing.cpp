@@ -177,3 +177,93 @@ void remove_background(Mat image, Mat &lines, Mat &posts, Mat &ball, vector<Poin
 	}
 	//imshow("va", field);
 }
+void remove_background(Mat image, Mat &field)
+{
+    // void remove_background(Mat image, Mat &lines, Mat &posts, Mat &ball, vector<Point> &goalRoot, double *hor_hist, int *ver_hist)
+
+    cout << "color ";
+    // auto auxImg = image.clone();
+	// cvtColor(auxImg, image, CV_BGR2HSV);
+
+	vector<Point> goalRoots;
+	double hor_hist[image.cols];
+	int ver_hist[image.rows];
+    cv::Mat lines = Mat::zeros(image.rows, image.cols, CV_8UC3);
+    cv::Mat posts = Mat::zeros(image.rows, image.cols, CV_8UC3);
+    cv::Mat ball = Mat::zeros(image.rows, image.cols, CV_8UC3);
+	field = Mat::zeros(image.rows, image.cols, CV_8UC3);
+	Mat background_border = Mat::zeros(image.rows, image.cols, CV_8UC1);
+	vector<Vec2i> background_border_points = vector<Vec2i>();
+	// boolean variable which declares if the current row pixel is above field
+	// height...
+	bool background, continuous;
+	int counter;
+	for (int j = 0; j < image.cols; j++)
+	{
+		hor_hist[j] = 0;
+		background = true;
+		counter = 0;
+		for (int i = 0; i < image.rows; i++)
+		{
+			// hue refers to yellow, binary white will be stored in the goalposts image
+			// in order to find the posts later...
+			if (hsv_range(image.at<Vec3b>(i, j), YEL_HUE_MIN, YEL_HUE_MAX, YEL_SAT_MIN, YEL_SAT_MAX, YEL_VAL_MIN, YEL_VAL_MAX))
+			{
+				hor_hist[j]++;
+				ver_hist[i]++;
+				ass_val_pixel(posts.at<cv::Vec3b>(i, j), 255, 255, 255);
+				ass_val_pixel2pixel(field.at<Vec3b>(i, j), image.at<Vec3b>(i, j));
+				if (i < image.cols - 1)
+				{
+					if (hsv_range(image.at<Vec3b>(i + 1, j), GR_HUE_MIN, GR_HUE_MAX, GR_SAT_MIN, GR_SAT_MAX, GR_VAL_MIN, GR_VAL_MAX))
+					{
+						goalRoots.push_back(Point(i, j));
+					}
+				}
+			}
+			// check for the horizontal start of the field
+			if (background)
+			{
+				if (hsv_range(image.at<Vec3b>(i, j), GR_HUE_MIN, GR_HUE_MAX, GR_SAT_MIN, GR_SAT_MAX, GR_VAL_MIN, GR_VAL_MAX))
+				{
+					counter++;
+					ass_val_pixel(field.at<Vec3b>(i, j), 0, 0, 0);
+					if (counter > BACK_THRESHOLD)
+					{
+						ass_val_pixel(field.at<Vec3b>(i - BACK_THRESHOLD, j), 255, 255, 255);
+						background_border.at<uchar>(i - BACK_THRESHOLD, j) = 255;
+						background_border_points.push_back(Vec2i(i - BACK_THRESHOLD, j));
+						for (int k = 0; k < BACK_THRESHOLD + 5; k++)
+						{
+							if ((i - k) >= 0)
+							{
+								ass_val_pixel2pixel(field.at<Vec3b>(i - k, j), image.at<Vec3b>(i - k, j));
+							}
+						}
+						background = false;
+					}
+				}
+				else
+				{
+					continuous = false;
+					counter = 0;
+				}
+			}
+			else
+			{
+				if (hsv_range(image.at<Vec3b>(i, j), WH_HUE_MIN, WH_HUE_MAX, WH_SAT_MIN, WH_SAT_MAX, WH_VAL_MIN, WH_VAL_MAX))
+				{
+					ass_val_pixel(lines.at<Vec3b>(i, j), 255, 255, 255);
+				}
+				else
+				{
+					ass_val_pixel(lines.at<Vec3b>(i, j), 0, 0, 0);
+				}
+				ass_val_pixel2pixel(field.at<Vec3b>(i, j), image.at<Vec3b>(i, j));
+			}
+		}
+		hor_hist[j] /= image.rows;
+	}
+	// imshow("border:", background_border);
+    // cv::waitKey();
+}

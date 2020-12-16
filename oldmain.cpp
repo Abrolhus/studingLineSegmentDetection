@@ -19,33 +19,67 @@ int main(int argc, char **argv)
     cv::Mat img, grayImg;
     int n;
 	img = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
+    std::string imgPath = argv[2]; // for instance "folder1/image171.jpg"
     cv::Mat binarizada(img.rows, img.cols, CV_8UC3, cv::Scalar(0,0,0));
+    cv::Mat field, auxImg;
+    auxImg = img.clone();
+    remove_background(img, field);
+    cv::imshow("vai ", field);
+    cv::waitKey();
+
+    remove_background(auxImg, img); // remove_background(img, img) n'ao funciona como esperado, ja que no comeco da funcao a segunda matriz eh zerada. na real nao sei dizer exatamente, melhor testar....
     cv::cvtColor(img, grayImg, cv::COLOR_RGBA2GRAY);
+    std::vector<cv::Vec4i> lines; // vetor de linhas, sendo cada linha {p1y, p1x, p2y, p2x}
     double* grayValues = new double[grayImg.rows*grayImg.cols];
     double* lineSegs;
+    std::vector<cv::Point> endPoints;
+    std::vector<cv::Point> beginPoints;
     for(int y = 0; y < grayImg.rows; y++){
         for(int x = 0; x < grayImg.cols; x++){
             //armazena os valores de cor de cada pixel num array UNIDIMENSIONAL de doubles;
-            //
-            // std::cout << y*grayImg.cols + x << " ";
             // double nnnn = grayImg.at<double>(y, x); // note que caso tente img.at<double> vai vir um numero MUITO feio, o programa vai chorar
             double atxy = (double)grayImg.at<uchar>(y, x);
             grayValues[y*grayImg.cols + x] = atxy;
         }
     }
     // std::cout << "dimens da imagem: " << grayImg.rows << " " << grayImg.cols;
-    // lineSegs = lsd(&n, grayValues, grayImg.cols, grayImg.rows);
-
     lineSegs = lsd(&n, grayValues, grayImg.cols, grayImg.rows);
-    std::vector<cv::Vec4i> lines;
+    /*
+    @return            A double array of size 7 x n_out, containing the list
+
+  7                        of line segments detected. The array contains first
+  6                        7 values of line segment number 1, then the 7 values
+  5                        of line segment number 2, and so on, and it finish
+  4                        by the 7 values of line segment number n_out.
+  3                        The seven values are:
+  2                        - x1,y1,x2,y2,width,p,-log10(NFA)
+  1                        .
+271                        for a line segment from coordinates (x1,y1) to (x2,y2),
+  1                        a width 'width', an angle precision of p in (0,1) given
+  2                        by angle_tolerance/180 degree, and NFA value 'NFA'.
+  3                        If 'out' is the returned pointer, the 7 values of
+  4                        line segment number 'n+1' are obtained with
+  5                        'out[7n+0]' to 'out[7n+6]'.
+  6  */
     for(int i=0;i<n;i++)
     {
-        for(int j=0;j<7;j++);
+        beginPoints.push_back(cv::Point(lineSegs[7*i + 0], lineSegs[7*i + 1]));
+        endPoints.push_back(cv::Point(lineSegs[7*i + 2], lineSegs[7*i + 3]));
+
+
             //printf("%f ",lineSegs[7*i+j]);
         double angle = 0;
         cv::line(img, cv::Point(lineSegs[7*i+0], lineSegs[7*i+1]), cv::Point(lineSegs[7*i+2], lineSegs[7*i+3]), cv::Scalar(234, 100, 0), 2);
         cv::line(binarizada, cv::Point(lineSegs[7*i+0], lineSegs[7*i+1]), cv::Point(lineSegs[7*i+2], lineSegs[7*i+3]), cv::Scalar(255, 255, 255), 2);
+        lines.push_back({(int)lineSegs[7*i+1],(int)lineSegs[7*i+0], (int)lineSegs[7*i+3], (int)lineSegs[7*i+2]});
+
     }
+
+    for(int i =0; i < endPoints.size(); i++){
+        cv::circle(img, endPoints.at(i), 7, cv::Scalar(0, 255, 0), 3);
+        cv::circle(img, beginPoints.at(i), 7, cv::Scalar(0, 0, 255), 3); }
+    cout << "begin:" << beginPoints.size() <<  " == " <<  "end: " << endPoints.size() << "\n";
+
     std::vector<field_point> result_intersections;
     std::vector<goalposts> goalPosts;
 
@@ -57,31 +91,7 @@ int main(int argc, char **argv)
         {4, cv::Scalar(55,20,155)}
 
     };
-    cv::putText(img, "LLLLL", Point(img.cols*2/3, img.rows*2/3 + 00),cv::FONT_HERSHEY_DUPLEX, 1.0,  featureToColor.at(0));
-    cv::putText(img, "TTTTT", Point(img.cols*2/3, img.rows*2/3 + 20),cv::FONT_HERSHEY_DUPLEX, 1.0,  featureToColor.at(1));
-    cv::putText(img, ",,,,,", Point(img.cols*2/3, img.rows*2/3 + 40),cv::FONT_HERSHEY_DUPLEX, 1.0,  featureToColor.at(2));
-    cv::putText(img, "XXXXX", Point(img.cols*2/3, img.rows*2/3 + 60),cv::FONT_HERSHEY_DUPLEX, 1.0,  featureToColor.at(3));
-    cv::putText(img, ".....", Point(img.cols*2/3, img.rows*2/3 + 80),cv::FONT_HERSHEY_DUPLEX, 1.0,  featureToColor.at(4));
-
-//
-    cout << "line_extraction ";
-	line_extraction(binarizada, lines, 5, 5);
-    // cout << lines.size() << " fkjadslk;fjlasjdf ";
 	vector<Vec4i> ellipse_prob_lines;
-    cout << "detect_ellipse ";
-	// detect_ellipse(img_lines_binary, lines, ellipse_prob_lines);
-
-    cout << "line_most_prob_features ";
-	line_most_prob_features(binarizada, lines, ellipse_prob_lines,
-							result_intersections);
-
-    for(auto& e : result_intersections){
-        cout << "uai";
-        circle(binarizada, Point(e.position.x, e.position.y), 3, featureToColor.at(e.type), 3, 8, 0);
-    }
-
-    cv::imshow("vai tio", img);
-    cv::imshow("tb vai tio", binarizada);
-    cv::waitKey(0);
+    cv::imwrite(imgPath, img);
     return 0;
 }
